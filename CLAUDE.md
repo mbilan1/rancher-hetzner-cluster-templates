@@ -15,11 +15,11 @@ and `rke-machine-config.cattle.io/v1 HetznerConfig` CRDs.
 
 ## Sibling Repositories
 
-| Repo | Local Path | Purpose |
+| Repo | GitHub | Purpose |
 |---|---|---|
-| `terraform-hcloud-rke2-core` | `/home/mbilan/workdir/astract/terraform-hcloud-rke2-core` | L3 infrastructure primitive |
-| `terraform-hcloud-rancher` | `/home/mbilan/workdir/astract/terraform-hcloud-rancher` | Management cluster (Rancher) |
-| `rke2-hetzner-architecture` | `/home/mbilan/workdir/astract/rke2-hetzner-architecture` | Architecture knowledge base |
+| `terraform-hcloud-rke2-core` | [mbilan1/terraform-hcloud-rke2-core](https://github.com/mbilan1/terraform-hcloud-rke2-core) | L3 infrastructure primitive |
+| `terraform-hcloud-rancher` | [mbilan1/terraform-hcloud-rancher](https://github.com/mbilan1/terraform-hcloud-rancher) | Management cluster (Rancher) |
+| `rke2-hetzner-architecture` | [mbilan1/rke2-hetzner-architecture](https://github.com/mbilan1/rke2-hetzner-architecture) | Architecture knowledge base |
 
 ---
 
