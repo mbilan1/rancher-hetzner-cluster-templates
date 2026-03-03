@@ -246,6 +246,24 @@ questions:
   default: true
   group: "Configuration"
 
+- variable: clusterConfig.cisProfile.enabled
+  label: "CIS Hardening"
+  description: "Enable RKE2 CIS 1.11 hardening profile. Fixes file permissions (600), enables audit logging, disables token extension. See https://docs.rke2.io/security/hardening_guide"
+  type: boolean
+  default: false
+  group: "Configuration"
+
+- variable: clusterConfig.cisProfile.profile
+  label: "CIS Profile"
+  description: "RKE2 CIS profile name"
+  type: enum
+  default: "cis"
+  options:
+    - "cis"
+    - "cis-1.23"
+  show_if: "clusterConfig.cisProfile.enabled=true"
+  group: "Configuration"
+
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Auth Endpoint
 # ═══════════════════════════════════════════════════════════════════════════════

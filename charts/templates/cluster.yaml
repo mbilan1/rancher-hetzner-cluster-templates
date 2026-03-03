@@ -81,6 +81,16 @@ spec:
       {{- if .Values.clusterConfig.secretsEncryption }}
       secrets-encryption: true
       {{- end }}
+      {{- if .Values.clusterConfig.cisProfile.enabled }}
+      {{/*
+      DECISION: CIS 1.11 hardening via RKE2 profile.
+      Why: `profile: cis` in machineGlobalConfig makes RKE2 apply CIS hardening
+           at bootstrap: file permissions, audit logging, token expiration, etc.
+           Fixes all 9 automated CIS FAIL checks without manual cloud-init.
+      See: https://docs.rke2.io/security/hardening_guide
+      */}}
+      profile: {{ .Values.clusterConfig.cisProfile.profile | default "cis" }}
+      {{- end }}
     upgradeStrategy:
       controlPlaneDrainOptions:
         enabled: {{ .Values.upgradeStrategy.controlPlaneDrainOptions.enabled | default false }}
