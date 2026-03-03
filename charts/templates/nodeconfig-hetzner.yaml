@@ -1,0 +1,48 @@
+{{/*
+────────────────────────────────────────────────────────────────────────────────
+Hetzner RKE2 Cluster Template — HetznerConfig CRDs
+
+DECISION: One HetznerConfig per node pool.
+Why: Each node pool may have different server types, locations, and firewall
+     settings. The machineConfigRef in the Cluster CRD references these by name.
+See: rke2-hetzner-architecture/investigations/inv-002-hetzner-machine-driver.md
+
+NOTE: CRD kind "HetznerConfig" is derived by Rancher from the driver name:
+      "hetzner" → PascalCase + "Config" → "HetznerConfig"
+      apiGroup: rke-machine-config.cattle.io/v1
+────────────────────────────────────────────────────────────────────────────────
+*/}}
+{{- range $index, $nodepool := .Values.nodepools }}
+apiVersion: rke-machine-config.cattle.io/v1
+kind: HetznerConfig
+metadata:
+  name: {{ $nodepool.name }}
+  namespace: fleet-default
+  labels:
+    {{- include "hetzner-cluster-template.labels" $ | nindent 4 }}
+# NOTE: HetznerConfig fields are top-level (not under spec).
+# This matches the zsys-studio driver's CRD schema.
+serverType: {{ $nodepool.serverType | default "cx23" }}
+serverLocation: {{ $nodepool.serverLocation | default "fsn1" }}
+image: {{ $nodepool.image | default $.Values.hetzner.image | default "ubuntu-24.04" }}
+usePrivateNetwork: {{ $.Values.hetzner.usePrivateNetwork | default false }}
+{{- if $.Values.hetzner.network }}
+networks:
+  - {{ $.Values.hetzner.network | quote }}
+{{- end }}
+disablePublicIpv4: {{ $.Values.hetzner.disablePublicIpv4 | default false }}
+disablePublicIpv6: {{ $.Values.hetzner.disablePublicIpv6 | default true }}
+createFirewall: {{ $nodepool.createFirewall | default true }}
+autoCreateFirewallRules: {{ $nodepool.autoCreateFirewallRules | default true }}
+clusterId: {{ include "hetzner-cluster-template.clusterName" $ }}
+{{- if $nodepool.userData }}
+userData: {{ $nodepool.userData | quote }}
+{{- end }}
+{{- if $nodepool.placementGroup }}
+placementGroup: {{ $nodepool.placementGroup | quote }}
+{{- end }}
+{{- if $nodepool.existingSshKey }}
+existingSshKey: {{ $nodepool.existingSshKey | quote }}
+{{- end }}
+---
+{{- end }}

@@ -1,0 +1,60 @@
+{{/*
+────────────────────────────────────────────────────────────────────────────────
+Hetzner RKE2 Cluster Template — ManagedCharts for CCM + CSI
+
+DECISION: Deploy Hetzner CCM and CSI into downstream clusters via ManagedChart.
+Why: The zsys-studio driver does NOT install CCM or CSI. Without CCM, Hetzner
+     LBs don't integrate with K8s Services. Without CSI, PersistentVolumes
+     can't be provisioned from Hetzner Cloud Volumes.
+See: rke2-hetzner-architecture/investigations/inv-002-hetzner-machine-driver.md
+
+COMPROMISE: ManagedChart deploys the Helm releases but the HCLOUD_TOKEN secret
+   must be created manually in the downstream cluster. This is because Rancher
+   Cloud Credentials are stored in the management cluster only — they are not
+   automatically synced to downstream clusters as K8s Secrets.
+   See: docs/USAGE.md for the manual secret creation step.
+
+NOTE: ManagedChart requires that the Helm repository is registered as a
+   ClusterRepo in Rancher. The hcloud repo (https://charts.hetzner.cloud)
+   must be added before using this template.
+────────────────────────────────────────────────────────────────────────────────
+*/}}
+{{- if .Values.hcloud.ccm.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: hcloud-ccm-{{ include "hetzner-cluster-template.clusterName" . }}
+  namespace: fleet-default
+  labels:
+    {{- include "hetzner-cluster-template.labels" . | nindent 4 }}
+spec:
+  chart: hcloud-cloud-controller-manager
+  repoName: hcloud
+  releaseName: hcloud-ccm
+  version: {{ .Values.hcloud.ccm.version | quote }}
+  defaultNamespace: kube-system
+  values:
+    networking:
+      enabled: {{ .Values.hetzner.usePrivateNetwork | default false }}
+  targets:
+  - clusterName: {{ include "hetzner-cluster-template.clusterName" . }}
+---
+{{- end }}
+{{- if .Values.hcloud.csi.enabled }}
+apiVersion: management.cattle.io/v3
+kind: ManagedChart
+metadata:
+  name: hcloud-csi-{{ include "hetzner-cluster-template.clusterName" . }}
+  namespace: fleet-default
+  labels:
+    {{- include "hetzner-cluster-template.labels" . | nindent 4 }}
+spec:
+  chart: hcloud-csi-driver
+  repoName: hcloud
+  releaseName: hcloud-csi
+  version: {{ .Values.hcloud.csi.version | quote }}
+  defaultNamespace: kube-system
+  targets:
+  - clusterName: {{ include "hetzner-cluster-template.clusterName" . }}
+---
+{{- end }}

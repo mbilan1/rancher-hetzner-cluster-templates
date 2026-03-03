@@ -1,0 +1,156 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Hetzner RKE2 Cluster Template — Default values
+#
+# DECISION: Values are Hetzner-specific only. No multi-cloud conditionals.
+# Why: Unlike upstream rancher/cluster-template-examples which supports AWS,
+#      Azure, DO, vSphere — this chart is Hetzner-only. This keeps the chart
+#      simple and the UI form focused.
+# See: rke2-hetzner-architecture/designs/des-001-cluster-template-helm-chart.md
+#
+# DECISION: Network name is pre-fillable from terraform-hcloud-rancher output.
+# Why: ADR-005 — downstream clusters share the management cluster's private
+#      network. The network_id output from tofu is used to pre-fill this value.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Cluster Identity
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cluster:
+  name: ""
+  labels: {}
+  annotations: {}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Rancher Cloud Credential
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# DECISION: This references a Rancher Cloud Credential secret (type: Hetzner).
+# Created manually in Rancher UI: Cluster Management → Cloud Credentials → Create.
+# Contains the downstream project's HCLOUD_TOKEN (scoped to one Hetzner Project).
+cloudCredentialSecretName: ""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Kubernetes
+# ═══════════════════════════════════════════════════════════════════════════════
+
+kubernetesVersion: "v1.32.3+rke2r1"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Hetzner Global Settings
+# ═══════════════════════════════════════════════════════════════════════════════
+
+hetzner:
+  # Pre-fill with management cluster network name (from `tofu output network_id`)
+  # ADR-005: Downstream clusters join the management cluster's private network.
+  network: ""
+  usePrivateNetwork: true
+  disablePublicIpv4: false
+  disablePublicIpv6: true
+  image: ubuntu-24.04
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Node Pools
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# DECISION: Default is a single converged pool (etcd + cp + worker) with 3 nodes.
+# Why: Simplest HA setup for small/medium workloads. Operators can add dedicated
+#      worker pools or split roles via the Rancher UI form (questions.yaml).
+nodepools:
+  - name: pool-all
+    displayName: "All Roles"
+    quantity: 3
+    etcd: true
+    controlplane: true
+    worker: true
+    # DECISION: cx23 as default — cheapest server type for downstream clusters.
+    # 2 vCPU, 4 GB RAM, 40 GB disk. Sufficient for small workloads.
+    # Scale up to cx33/cx43 for production via questions.yaml dropdown.
+    serverType: cx23
+    serverLocation: fsn1
+    # DECISION: createFirewall + autoCreateFirewallRules = true by default.
+    # Why: The zsys-studio driver manages a shared cluster firewall automatically.
+    # It adds/removes node IPs as /32 source CIDRs for internal rules.
+    # See: rke2-hetzner-architecture/investigations/inv-002-hetzner-machine-driver.md
+    createFirewall: true
+    autoCreateFirewallRules: true
+    paused: false
+    labels: {}
+    taints: []
+    userData: ""
+    placementGroup: ""
+    existingSshKey: ""
+    rollingUpdate:
+      maxUnavailable: "1"
+      maxSurge: "1"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Hetzner Cloud Integrations (deployed via ManagedChart into downstream)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# DECISION: CCM and CSI are enabled by default via ManagedChart.
+# Why: Every Hetzner K8s cluster needs CCM (for LB integration, node lifecycle)
+#      and CSI (for persistent volumes). Without them, the cluster is not usable
+#      for production workloads.
+# COMPROMISE: HCLOUD_TOKEN delivery to downstream clusters is a manual step.
+#   The ManagedChart deploys the Helm charts but the token Secret must be
+#   created in the downstream cluster manually. See docs/USAGE.md.
+hcloud:
+  ccm:
+    enabled: true
+    version: "1.30.1"
+  csi:
+    enabled: true
+    version: "2.12.0"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Cluster Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# DECISION: cloud-provider-name: external is mandatory for Hetzner CCM.
+# Why: RKE2 must be told not to use its built-in cloud provider and instead
+#      defer to the external Hetzner Cloud Controller Manager.
+clusterConfig:
+  cni: canal
+  cloudProviderName: external
+  secretsEncryption: true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Upgrade Strategy
+# ═══════════════════════════════════════════════════════════════════════════════
+
+upgradeStrategy:
+  controlPlaneDrainOptions:
+    enabled: false
+  workerDrainOptions:
+    enabled: false
+  workerConcurrency: "10%"
+  controlPlaneConcurrency: "10%"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Local Cluster Auth Endpoint (ACE)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# DECISION: ACE disabled by default.
+# Why: Requires DNS setup for the downstream cluster FQDN. Enable for production
+#      clusters that need direct kubectl access bypassing Rancher.
+localClusterAuthEndpoint:
+  enabled: false
+  fqdn: ""
+  caCerts: ""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Cluster Members (RBAC)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# clusterMembers:
+#   - principalName: "local://u-xxxxx"
+#     roleTemplateName: "cluster-member"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Agent Environment Variables
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# agentEnvs:
+#   - name: HTTPS_PROXY
+#     value: "http://proxy:8080"

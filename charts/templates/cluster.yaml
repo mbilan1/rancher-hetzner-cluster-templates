@@ -1,0 +1,82 @@
+{{/*
+────────────────────────────────────────────────────────────────────────────────
+Hetzner RKE2 Cluster Template — Cluster CRD
+
+DECISION: Hetzner-only — no multi-cloud conditionals.
+Why: Upstream rancher/cluster-template-examples has if/else for aws, azure, do,
+     vsphere, harvester. This chart only supports Hetzner, keeping the template
+     clean and focused.
+
+DECISION: cloud-provider-name: external is hardcoded in machineGlobalConfig.
+Why: Required for Hetzner CCM to manage node lifecycle and LB integration.
+────────────────────────────────────────────────────────────────────────────────
+*/}}
+apiVersion: provisioning.cattle.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "hetzner-cluster-template.clusterName" . }}
+  namespace: fleet-default
+  {{- with .Values.cluster.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.cluster.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.cloudCredentialSecretName }}
+  cloudCredentialSecretName: {{ .Values.cloudCredentialSecretName }}
+  {{- end }}
+  kubernetesVersion: {{ .Values.kubernetesVersion }}
+  enableNetworkPolicy: true
+  {{- if .Values.localClusterAuthEndpoint.enabled }}
+  localClusterAuthEndpoint:
+    enabled: {{ .Values.localClusterAuthEndpoint.enabled }}
+    fqdn: {{ .Values.localClusterAuthEndpoint.fqdn }}
+    caCerts: {{ .Values.localClusterAuthEndpoint.caCerts }}
+  {{- end }}
+  rkeConfig:
+    machinePools:
+    {{- range $index, $nodepool := .Values.nodepools }}
+    - name: {{ $nodepool.name }}
+      displayName: {{ $nodepool.displayName | default $nodepool.name }}
+      controlPlaneRole: {{ $nodepool.controlplane }}
+      etcdRole: {{ $nodepool.etcd }}
+      workerRole: {{ $nodepool.worker }}
+      quantity: {{ $nodepool.quantity }}
+      paused: {{ $nodepool.paused | default false }}
+      machineConfigRef:
+        kind: HetznerConfig
+        name: {{ $nodepool.name }}
+      {{- if $nodepool.rollingUpdate }}
+      rollingUpdate:
+        maxUnavailable: {{ $nodepool.rollingUpdate.maxUnavailable | default "1" }}
+        maxSurge: {{ $nodepool.rollingUpdate.maxSurge | default "1" }}
+      {{- end }}
+      {{- with $nodepool.labels }}
+      labels:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $nodepool.taints }}
+      taints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    machineGlobalConfig:
+      cni: {{ .Values.clusterConfig.cni | default "canal" }}
+      cloud-provider-name: {{ .Values.clusterConfig.cloudProviderName | default "external" }}
+      {{- if .Values.clusterConfig.secretsEncryption }}
+      secrets-encryption: true
+      {{- end }}
+    upgradeStrategy:
+      controlPlaneDrainOptions:
+        enabled: {{ .Values.upgradeStrategy.controlPlaneDrainOptions.enabled | default false }}
+      workerDrainOptions:
+        enabled: {{ .Values.upgradeStrategy.workerDrainOptions.enabled | default false }}
+      workerConcurrency: {{ .Values.upgradeStrategy.workerConcurrency | default "10%" | quote }}
+      controlPlaneConcurrency: {{ .Values.upgradeStrategy.controlPlaneConcurrency | default "10%" | quote }}
+    {{- if .Values.agentEnvs }}
+    agentEnvVars:
+      {{- toYaml .Values.agentEnvs | nindent 6 }}
+    {{- end }}

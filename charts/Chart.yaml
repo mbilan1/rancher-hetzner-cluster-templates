@@ -1,0 +1,37 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Hetzner RKE2 Cluster Template — Helm Chart metadata
+#
+# DECISION: catalog.cattle.io/type: cluster-template annotation makes this chart
+# appear in Rancher UI "Create Cluster" dropdown when registered as a Chart Repo.
+# See: rke2-hetzner-architecture/decisions/adr-004-downstream-provisioning.md
+#
+# DECISION: apiVersion v1 (not v2) — cluster templates use v1 format per
+# upstream rancher/cluster-template-examples.
+# ──────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+name: hetzner-rke2-cluster-template
+description: >-
+  RKE2 cluster template for Hetzner Cloud using the zsys-studio Machine Driver.
+  Creates downstream Kubernetes clusters from the Rancher UI with Hetzner-optimized
+  defaults, automated CCM/CSI installation, and private network integration.
+version: 0.1.0
+appVersion: "0.1.0"
+annotations:
+  # DECISION: These annotations are required for Rancher to recognize this chart
+  # as a cluster template and deploy it into the fleet-default namespace.
+  catalog.cattle.io/type: cluster-template
+  catalog.cattle.io/namespace: fleet-default
+  catalog.cattle.io/display-name: Hetzner Cloud (RKE2)
+home: https://github.com/mbilan1/rancher-hetzner-cluster-templates
+sources:
+  - https://github.com/mbilan1/rancher-hetzner-cluster-templates
+  - https://github.com/zsys-studio/rancher-hetzner-cluster-provider
+maintainers:
+  - name: mbilan
+    url: https://github.com/mbilan1
+keywords:
+  - hetzner
+  - rke2
+  - kubernetes
+  - rancher
+  - cluster-template

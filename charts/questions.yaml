@@ -1,0 +1,238 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Hetzner RKE2 Cluster Template — Rancher UI form definition
+#
+# DECISION: questions.yaml defines the form that Rancher shows when an operator
+# creates a cluster from this template. Groups organize fields into logical tabs.
+# See: rke2-hetzner-architecture/investigations/inv-001-rancher-cluster-templates.md
+#
+# NOTE: Rancher supports these field types:
+#   string, enum, boolean, int, hostname, multiline, cloudcredential, password
+# ──────────────────────────────────────────────────────────────────────────────
+questions:
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  General
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- variable: cluster.name
+  label: "Cluster Name"
+  description: "Unique name for this downstream cluster"
+  type: string
+  required: true
+  group: "General"
+
+- variable: cloudCredentialSecretName
+  label: "Cloud Credential"
+  description: "Rancher Cloud Credential (type: Hetzner) — contains the downstream project's HCLOUD_TOKEN"
+  type: cloudcredential
+  required: true
+  group: "General"
+
+- variable: kubernetesVersion
+  label: "Kubernetes Version"
+  description: "RKE2 Kubernetes version"
+  type: enum
+  required: true
+  default: "v1.32.3+rke2r1"
+  options:
+    - "v1.32.3+rke2r1"
+    - "v1.31.5+rke2r1"
+    - "v1.30.9+rke2r1"
+  group: "General"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Network
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- variable: hetzner.network
+  label: "Private Network"
+  description: "Hetzner private network name or ID (from management cluster: tofu output network_id)"
+  type: string
+  required: false
+  group: "Network"
+
+- variable: hetzner.usePrivateNetwork
+  label: "Use Private Network"
+  description: "Use private network for inter-node communication (recommended)"
+  type: boolean
+  default: true
+  group: "Network"
+
+- variable: hetzner.disablePublicIpv4
+  label: "Disable Public IPv4"
+  description: "Disable public IPv4 on nodes (requires private network)"
+  type: boolean
+  default: false
+  group: "Network"
+
+- variable: hetzner.disablePublicIpv6
+  label: "Disable Public IPv6"
+  description: "Disable public IPv6 on nodes"
+  type: boolean
+  default: true
+  group: "Network"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Node Pool — Pool 1 (all roles)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- variable: nodepools.0.name
+  label: "Pool Name"
+  description: "Name for the first node pool"
+  type: string
+  default: "pool-all"
+  required: true
+  group: "Node Pool 1"
+
+- variable: nodepools.0.quantity
+  label: "Node Count"
+  description: "Number of nodes in this pool (1 = dev, 3 = HA)"
+  type: int
+  default: 3
+  required: true
+  min: 1
+  max: 10
+  group: "Node Pool 1"
+
+- variable: nodepools.0.etcd
+  label: "etcd Role"
+  description: "Run etcd on these nodes"
+  type: boolean
+  default: true
+  group: "Node Pool 1"
+
+- variable: nodepools.0.controlplane
+  label: "Control Plane Role"
+  description: "Run control plane on these nodes"
+  type: boolean
+  default: true
+  group: "Node Pool 1"
+
+- variable: nodepools.0.worker
+  label: "Worker Role"
+  description: "Schedule workloads on these nodes"
+  type: boolean
+  default: true
+  group: "Node Pool 1"
+
+- variable: nodepools.0.serverType
+  label: "Server Type"
+  description: "Hetzner Cloud server type"
+  type: enum
+  default: "cx23"
+  options:
+    - "cx23"
+    - "cx33"
+    - "cx43"
+    - "cx53"
+    - "cpx21"
+    - "cpx31"
+    - "cpx41"
+    - "cpx51"
+    - "cax21"
+    - "cax31"
+    - "cax41"
+  group: "Node Pool 1"
+
+- variable: nodepools.0.serverLocation
+  label: "Server Location"
+  description: "Hetzner Cloud datacenter location"
+  type: enum
+  default: "fsn1"
+  options:
+    - "fsn1"
+    - "nbg1"
+    - "hel1"
+    - "ash"
+    - "hil"
+    - "sin"
+  group: "Node Pool 1"
+
+- variable: nodepools.0.createFirewall
+  label: "Create Firewall"
+  description: "Create a shared cluster firewall managed by the driver"
+  type: boolean
+  default: true
+  group: "Node Pool 1"
+
+- variable: nodepools.0.autoCreateFirewallRules
+  label: "Auto-Create Firewall Rules"
+  description: "Automatically create RKE2 firewall rules (SSH, API, etcd, VXLAN, etc.)"
+  type: boolean
+  default: true
+  show_if: "nodepools.0.createFirewall=true"
+  group: "Node Pool 1"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Integrations
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- variable: hcloud.ccm.enabled
+  label: "Hetzner CCM"
+  description: "Deploy Hetzner Cloud Controller Manager (required for LB integration)"
+  type: boolean
+  default: true
+  group: "Integrations"
+
+- variable: hcloud.ccm.version
+  label: "CCM Version"
+  description: "Hetzner CCM Helm chart version"
+  type: string
+  default: "1.30.1"
+  show_if: "hcloud.ccm.enabled=true"
+  group: "Integrations"
+
+- variable: hcloud.csi.enabled
+  label: "Hetzner CSI"
+  description: "Deploy Hetzner CSI Driver (required for persistent volumes)"
+  type: boolean
+  default: true
+  group: "Integrations"
+
+- variable: hcloud.csi.version
+  label: "CSI Version"
+  description: "Hetzner CSI Driver Helm chart version"
+  type: string
+  default: "2.12.0"
+  show_if: "hcloud.csi.enabled=true"
+  group: "Integrations"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Cluster Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- variable: clusterConfig.cni
+  label: "CNI Plugin"
+  description: "Container Network Interface plugin"
+  type: enum
+  default: "canal"
+  options:
+    - "canal"
+    - "calico"
+    - "cilium"
+  group: "Configuration"
+
+- variable: clusterConfig.secretsEncryption
+  label: "Secrets Encryption"
+  description: "Enable encryption of Kubernetes Secrets at rest"
+  type: boolean
+  default: true
+  group: "Configuration"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Auth Endpoint
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- variable: localClusterAuthEndpoint.enabled
+  label: "Authorized Cluster Endpoint"
+  description: "Enable direct kubectl access to downstream cluster (bypassing Rancher)"
+  type: boolean
+  default: false
+  group: "Auth Endpoint"
+
+- variable: localClusterAuthEndpoint.fqdn
+  label: "FQDN"
+  description: "FQDN for the Authorized Cluster Endpoint"
+  type: hostname
+  show_if: "localClusterAuthEndpoint.enabled=true"
+  group: "Auth Endpoint"
