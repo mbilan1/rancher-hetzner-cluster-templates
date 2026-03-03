@@ -1,0 +1,23 @@
+{{/*
+────────────────────────────────────────────────────────────────────────────────
+Hetzner RKE2 Cluster Template — RBAC ClusterRoleTemplateBinding
+
+DECISION: Following upstream rancher/cluster-template-examples pattern.
+Creates ClusterRoleTemplateBinding for each member in .Values.clusterMembers.
+This assigns Rancher RBAC roles (cluster-owner, cluster-member, etc.) to users.
+────────────────────────────────────────────────────────────────────────────────
+*/}}
+{{- $root := . }}
+{{- range $index, $member := .Values.clusterMembers }}
+apiVersion: management.cattle.io/v3
+kind: ClusterRoleTemplateBinding
+metadata:
+  name: crtb-{{ trunc 8 (sha256sum (printf "%s/%s" $root.Release.Namespace $member.principalName)) }}
+  namespace: c-m-{{ trunc 8 (sha256sum (printf "%s/%s" $root.Release.Namespace $root.Values.cluster.name)) }}
+  labels:
+    {{- include "hetzner-cluster-template.labels" $root | nindent 4 }}
+clusterName: c-m-{{ trunc 8 (sha256sum (printf "%s/%s" $root.Release.Namespace $root.Values.cluster.name)) }}
+roleTemplateName: {{ $member.roleTemplateName }}
+userPrincipalName: {{ $member.principalName }}
+---
+{{- end }}

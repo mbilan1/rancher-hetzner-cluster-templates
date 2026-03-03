@@ -193,7 +193,7 @@ questions:
   label: "CSI Version"
   description: "Hetzner CSI Driver Helm chart version"
   type: string
-  default: "2.12.0"
+  default: "2.20.0"
   show_if: "hcloud.csi.enabled=true"
   group: "Integrations"
 
