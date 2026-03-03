@@ -83,6 +83,14 @@ nodepools:
     rollingUpdate:
       maxUnavailable: "1"
       maxSurge: "1"
+    # Rancher-native machine pool autoscaling via machineDeploymentAnnotations.
+    # When enabled, Rancher adds CAPI autoscaler annotations to the MachineDeployment.
+    # Nodes created by this autoscaler go through Node Driver → visible in UI pool.
+    # COMPROMISE: Requires live testing with zsys-studio driver to confirm support.
+    autoscaler:
+      enabled: false
+      minSize: 1
+      maxSize: 10
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Hetzner Cloud Integrations (deployed via ManagedChart into downstream)
