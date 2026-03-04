@@ -47,7 +47,7 @@ hetzner:
   usePrivateNetwork: true
   disablePublicIpv4: false
   disablePublicIpv6: true
-  image: ubuntu-24.04
+  image: "363699067" # default: ubuntu-24.04
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Node Pools
@@ -67,7 +67,7 @@ nodepools:
     # 2 vCPU, 4 GB RAM, 40 GB disk. Sufficient for small workloads.
     # Scale up to cx33/cx43 for production via questions.yaml dropdown.
     serverType: cx23
-    serverLocation: fsn1
+    serverLocation: nbg1
     # DECISION: createFirewall + autoCreateFirewallRules = true by default.
     # Why: The zsys-studio driver manages a shared cluster firewall automatically.
     # It adds/removes node IPs as /32 source CIDRs for internal rules.
@@ -94,23 +94,30 @@ nodepools:
       maxSize: 10
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  Hetzner Cloud Integrations (deployed via ManagedChart into downstream)
+#  Hetzner Cloud Integrations (deployed via additionalManifest at bootstrap)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# DECISION: CCM and CSI are enabled by default via ManagedChart.
-# Why: Every Hetzner K8s cluster needs CCM (for LB integration, node lifecycle)
-#      and CSI (for persistent volumes). Without them, the cluster is not usable
-#      for production workloads.
-# COMPROMISE: HCLOUD_TOKEN delivery to downstream clusters is a manual step.
-#   The ManagedChart deploys the Helm charts but the token Secret must be
-#   created in the downstream cluster manually. See docs/USAGE.md.
+# DECISION: CCM is deployed via RKE2 HelmChart CRD in additionalManifest.
+# Why: ManagedChart requires cluster-agent to be connected, but
+#      cloud-provider-name: external adds a NoSchedule taint
+#      (node.cloudprovider.kubernetes.io/uninitialized) on ALL nodes.
+#      cattle-cluster-agent does NOT tolerate this taint → permanent deadlock.
+#      additionalManifest + spec.bootstrap: true deploys CCM at RKE2 bootstrap,
+#      BEFORE cluster-agent is needed. This is the native RKE2 mechanism
+#      designed for CCM (see: https://docs.rke2.io/helm).
+# DECISION: Storage (CSI) is NOT managed by this chart.
+# Why: Hetzner CSI is only for Hetzner Cloud Volumes. Operators typically choose
+#      Longhorn or Rook-Ceph for distributed storage. Storage driver selection
+#      is the operator's responsibility — deploy via GitOps or Rancher Apps.
 hcloud:
+  # HCLOUD_TOKEN for downstream cluster CCM.
+  # Same token as the Cloud Credential, but embedded as a K8s Secret in the
+  # downstream cluster via additionalManifest. Required when CCM is enabled.
+  # Same trust boundary as cloudCredentialSecretName (management cluster admins only).
+  token: ""
   ccm:
     enabled: true
     version: "1.30.1"
-  csi:
-    enabled: true
-    version: "2.20.0"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Cluster Configuration
@@ -123,6 +130,12 @@ clusterConfig:
   cni: canal
   cloudProviderName: external
   secretsEncryption: true
+  # DECISION: Expose clusterCIDR/serviceCIDR as configurable values.
+  # Why: Hardcoding CIDRs is fragile. Operators may need non-overlapping ranges
+  #      when multiple clusters share a network with pod routing (networking.enabled).
+  #      Defaults match RKE2 defaults. Used in machineGlobalConfig AND CCM valuesContent.
+  clusterCIDR: "10.42.0.0/16"
+  serviceCIDR: "10.43.0.0/16"
   # DECISION: CIS 1.11 hardening profile for RKE2.
   # When enabled, sets `profile: cis` in RKE2 config which:
   #   - Fixes pod manifest file permissions (644 → 600) — CIS 1.1.1, 1.1.3, 1.1.5
@@ -136,6 +149,12 @@ clusterConfig:
     enabled: false
     # "cis" for standard CIS 1.x profile, "cis-1.23" for older compat
     profile: "cis"
+    # DECISION: PSA template for CIS mode.
+    # Why: CIS profile enables Pod Security Admission enforcement. Without exemptions,
+    #      system namespaces (kube-system, cattle-system, cattle-fleet-system) are
+    #      blocked by "restricted" policy. rancher-restricted is a built-in Rancher
+    #      template that exempts system namespaces.
+    psaTemplate: "rancher-restricted"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Upgrade Strategy
