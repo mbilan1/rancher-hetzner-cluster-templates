@@ -89,14 +89,15 @@ kubectl -n kube-system create secret generic hcloud \
 
 ## Step 6: Verify
 
-After a few minutes, check that CCM and CSI are running:
+After a few minutes, check that CCM is running:
 
 ```bash
 kubectl -n kube-system get pods | grep hcloud
 # Expected: hcloud-cloud-controller-manager-xxxxx Running
-#           hcloud-csi-controller-xxxxx           Running
-#           hcloud-csi-node-xxxxx                 Running (one per node)
 ```
+
+> **Note**: CSI is NOT managed by this chart. Operators deploy Hetzner CSI, Longhorn,
+> or Rook-Ceph separately. See the chart's `values.yaml` for details.
 
 Verify LB integration:
 

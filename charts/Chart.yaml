@@ -13,7 +13,7 @@ name: hetzner-rke2-cluster-template
 description: >-
   RKE2 cluster template for Hetzner Cloud using the zsys-studio Machine Driver.
   Creates downstream Kubernetes clusters from the Rancher UI with Hetzner-optimized
-  defaults, automated CCM/CSI installation, and private network integration.
+  defaults, automated CCM installation, and private network integration.
 version: 0.5.0
 appVersion: "0.5.0"
 annotations:

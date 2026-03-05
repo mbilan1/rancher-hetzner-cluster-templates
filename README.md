@@ -8,7 +8,7 @@ Registers as a chart repository in Rancher and enables one-click downstream clus
 
 1. **Rancher UI** → Create Cluster → Select "Hetzner Cloud (RKE2)"
 2. **Fill form** — cluster name, credentials, node pool config
-3. **Click Create** — Rancher provisions Hetzner servers, installs RKE2, deploys CCM/CSI
+3. **Click Create** — Rancher provisions Hetzner servers, installs RKE2, deploys CCM
 
 ## Architecture
 
@@ -20,7 +20,7 @@ terraform-hcloud-rancher (tofu apply)
 rancher-hetzner-cluster-templates (this repo)
   → Chart Repository registered in Rancher
   → Cluster Template with Hetzner-optimized defaults
-  → ManagedCharts for automatic CCM + CSI deployment
+  → CCM deployed via additionalManifest (RKE2 HelmChart CRD)
 ```
 
 Part of the [rke2-hetzner-architecture](https://github.com/mbilan1/rke2-hetzner-architecture) platform:
@@ -61,8 +61,8 @@ charts/
 └── templates/
     ├── _helpers.tpl            # Template helpers
     ├── cluster.yaml            # provisioning.cattle.io/v1 Cluster CRD
-    ├── nodeconfig-hetzner.yaml # rke-machine-config.cattle.io/v1 HetznerConfig
-    └── managedcharts.yaml      # CCM + CSI as ManagedChart
+    ├── clusterroletemplatebinding.yaml # Rancher RBAC bindings
+    └── nodeconfig-hetzner.yaml # rke-machine-config.cattle.io/v1 HetznerConfig
 ```
 
 ## Node Driver
