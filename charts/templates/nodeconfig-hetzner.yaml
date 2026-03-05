@@ -24,7 +24,7 @@ metadata:
 # This matches the zsys-studio driver's CRD schema.
 serverType: {{ $nodepool.serverType | default "cx23" }}
 serverLocation: {{ $nodepool.serverLocation | default "nbg1" }}
-image: {{ $nodepool.image | default $.Values.hetzner.image | default "ubuntu-24.04" }}
+image: {{ $nodepool.image | default $.Values.hetzner.image | default "ubuntu-24.04" | quote }}
 usePrivateNetwork: {{ $.Values.hetzner.usePrivateNetwork | default false }}
 {{- if $.Values.hetzner.network }}
 networks:

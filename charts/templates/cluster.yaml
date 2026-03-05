@@ -119,7 +119,10 @@ spec:
       kube-apiserver-arg:
         - "service-account-extend-token-expiration=false"
       {{- end }}
-    {{- if and .Values.hcloud.ccm.enabled .Values.hcloud.token }}
+    {{- if .Values.hcloud.ccm.enabled }}
+    {{- if not .Values.hcloud.token }}
+    {{- fail "hcloud.token is required when hcloud.ccm.enabled=true. Without CCM, cloud-provider-name: external causes a permanent NoSchedule taint deadlock (node.cloudprovider.kubernetes.io/uninitialized)." }}
+    {{- end }}
     {{/*
     DECISION: Deploy CCM via additionalManifest (RKE2 HelmChart CRD).
     Why: cloud-provider-name: external adds NoSchedule taint on all nodes.
