@@ -36,14 +36,14 @@ createFirewall: {{ $nodepool.createFirewall | default true }}
 autoCreateFirewallRules: {{ $nodepool.autoCreateFirewallRules | default true }}
 clusterId: {{ include "hetzner-cluster-template.clusterName" $ }}
 {{/*
-DECISION: CIS host prerequisites are delivered via Golden Image, NOT userData.
+DECISION: CIS host prerequisites are baked into the OS image via Packer, NOT userData.
 Why: rancher-machine intercepts flags matching nameIsUserData() (any flag name
      containing "user-data", "userdata", "custom-data", or "cloud-config") and
      REPLACES the value with a temp file path to Rancher's bootstrap cloud-init.
      The --hetzner-user-data flag matches → inline CIS content is silently lost.
-     Golden Image (Hetzner snapshot with etcd user + sysctl) avoids this entirely.
-     The default image (hetzner.image) should be a CIS-ready snapshot.
-See: hetzner-cluster-template.cisUserData helper for what must be in the image.
+     Packer baked image (Hetzner snapshot with etcd user + sysctl) avoids this.
+     The default image (hetzner.image) should be a CIS-ready Packer snapshot.
+See: hetzner-cluster-template.cisPackerReference helper for what must be in the image.
 */}}
 {{- if $nodepool.userData }}
 userData: {{ $nodepool.userData | quote }}
