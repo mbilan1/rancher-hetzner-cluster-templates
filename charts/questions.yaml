@@ -196,9 +196,17 @@ questions:
 
 - variable: hcloud.ccm.enabled
   label: "Hetzner CCM"
-  description: "Deploy Hetzner Cloud Controller Manager (required for LB integration)"
+  description: "Deploy Hetzner Cloud Controller Manager at bootstrap via additionalManifest (required for LB integration and node lifecycle)"
   type: boolean
   default: true
+  group: "Integrations"
+
+- variable: hcloud.token
+  label: "Hetzner API Token"
+  description: "HCLOUD_TOKEN for downstream cluster CCM (same token as the Cloud Credential). Embedded as a K8s Secret in the downstream cluster."
+  type: password
+  required: true
+  show_if: "hcloud.ccm.enabled=true"
   group: "Integrations"
 
 - variable: hcloud.ccm.version
@@ -209,20 +217,8 @@ questions:
   show_if: "hcloud.ccm.enabled=true"
   group: "Integrations"
 
-- variable: hcloud.csi.enabled
-  label: "Hetzner CSI"
-  description: "Deploy Hetzner CSI Driver (required for persistent volumes)"
-  type: boolean
-  default: true
-  group: "Integrations"
-
-- variable: hcloud.csi.version
-  label: "CSI Version"
-  description: "Hetzner CSI Driver Helm chart version"
-  type: string
-  default: "2.20.0"
-  show_if: "hcloud.csi.enabled=true"
-  group: "Integrations"
+# NOTE: Storage (CSI) is not managed by this chart.
+# Operators deploy Longhorn, Rook-Ceph, or Hetzner CSI separately.
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Cluster Configuration
@@ -246,6 +242,20 @@ questions:
   default: true
   group: "Configuration"
 
+- variable: clusterConfig.clusterCIDR
+  label: "Cluster CIDR"
+  description: "IPv4 network CIDR for pod IPs. Must match CCM networking.clusterCIDR when private networking is enabled."
+  type: string
+  default: "10.42.0.0/16"
+  group: "Configuration"
+
+- variable: clusterConfig.serviceCIDR
+  label: "Service CIDR"
+  description: "IPv4 network CIDR for ClusterIP services"
+  type: string
+  default: "10.43.0.0/16"
+  group: "Configuration"
+
 - variable: clusterConfig.cisProfile.enabled
   label: "CIS Hardening"
   description: "Enable RKE2 CIS 1.11 hardening profile. Fixes file permissions (600), enables audit logging, disables token extension. See https://docs.rke2.io/security/hardening_guide"
@@ -261,6 +271,14 @@ questions:
   options:
     - "cis"
     - "cis-1.23"
+  show_if: "clusterConfig.cisProfile.enabled=true"
+  group: "Configuration"
+
+- variable: clusterConfig.cisProfile.psaTemplate
+  label: "PSA Template"
+  description: "Pod Security Admission template. rancher-restricted exempts system namespaces from restricted enforcement."
+  type: string
+  default: "rancher-restricted"
   show_if: "clusterConfig.cisProfile.enabled=true"
   group: "Configuration"
 

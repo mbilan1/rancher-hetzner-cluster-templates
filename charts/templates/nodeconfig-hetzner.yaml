@@ -23,7 +23,7 @@ metadata:
 # NOTE: HetznerConfig fields are top-level (not under spec).
 # This matches the zsys-studio driver's CRD schema.
 serverType: {{ $nodepool.serverType | default "cx23" }}
-serverLocation: {{ $nodepool.serverLocation | default "fsn1" }}
+serverLocation: {{ $nodepool.serverLocation | default "nbg1" }}
 image: {{ $nodepool.image | default $.Values.hetzner.image | default "ubuntu-24.04" }}
 usePrivateNetwork: {{ $.Values.hetzner.usePrivateNetwork | default false }}
 {{- if $.Values.hetzner.network }}
@@ -35,7 +35,21 @@ disablePublicIpv6: {{ $.Values.hetzner.disablePublicIpv6 | default true }}
 createFirewall: {{ $nodepool.createFirewall | default true }}
 autoCreateFirewallRules: {{ $nodepool.autoCreateFirewallRules | default true }}
 clusterId: {{ include "hetzner-cluster-template.clusterName" $ }}
+{{- if $.Values.clusterConfig.cisProfile.enabled }}
+{{/*
+DECISION: Auto-inject CIS host prerequisites via cloud-init userData.
+Why: RKE2 CIS profile requires etcd user and kernel sysctl params on the host
+     BEFORE RKE2 starts. Without these, RKE2 exits with a fatal error and all
+     system-agent probes fail (etcd, apiserver, controller-manager, scheduler,
+     kubelet). Cloud-init runs at first boot, before system-agent installs RKE2.
+See: https://docs.rke2.io/security/hardening_guide
+*/}}
+userData: |
+{{ include "hetzner-cluster-template.cisUserData" $ | indent 2 }}
 {{- if $nodepool.userData }}
+{{ $nodepool.userData | indent 2 }}
+{{- end }}
+{{- else if $nodepool.userData }}
 userData: {{ $nodepool.userData | quote }}
 {{- end }}
 {{- if $nodepool.placementGroup }}

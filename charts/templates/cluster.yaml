@@ -9,6 +9,14 @@ Why: Upstream rancher/cluster-template-examples has if/else for aws, azure, do,
 
 DECISION: cloud-provider-name: external is hardcoded in machineGlobalConfig.
 Why: Required for Hetzner CCM to manage node lifecycle and LB integration.
+
+DECISION: CCM deployed via additionalManifest with spec.bootstrap: true.
+Why: ManagedChart requires cluster-agent, but cloud-provider-name: external
+     adds node.cloudprovider.kubernetes.io/uninitialized=true:NoSchedule taint.
+     cattle-cluster-agent does NOT tolerate this taint → deadlock.
+     additionalManifest + HelmChart CRD with bootstrap: true deploys CCM at
+     RKE2 startup, BEFORE cluster-agent needs to schedule.
+See: https://docs.rke2.io/helm (spec.bootstrap field)
 ────────────────────────────────────────────────────────────────────────────────
 */}}
 apiVersion: provisioning.cattle.io/v1
@@ -30,6 +38,16 @@ spec:
   {{- end }}
   kubernetesVersion: {{ .Values.kubernetesVersion }}
   enableNetworkPolicy: true
+  {{- if and .Values.clusterConfig.cisProfile.enabled .Values.clusterConfig.cisProfile.psaTemplate }}
+  {{/*
+  DECISION: PSA template for CIS mode.
+  Why: CIS profile enables Pod Security Admission enforcement. Without exemptions,
+       system namespaces (kube-system, cattle-system, cattle-fleet-system) are blocked
+       by "restricted" policy. rancher-restricted is a built-in Rancher template that
+       exempts system namespaces from restricted enforcement.
+  */}}
+  defaultPodSecurityAdmissionConfigurationTemplateName: {{ .Values.clusterConfig.cisProfile.psaTemplate }}
+  {{- end }}
   {{- if .Values.localClusterAuthEndpoint.enabled }}
   localClusterAuthEndpoint:
     enabled: {{ .Values.localClusterAuthEndpoint.enabled }}
@@ -62,7 +80,7 @@ spec:
       taints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if $nodepool.autoscaler.enabled }}
+      {{- if and $nodepool.autoscaler $nodepool.autoscaler.enabled }}
       {{/*
       DECISION: Rancher-native machine pool autoscaling via CAPI autoscaler annotations.
       Why: Nodes created via machineDeploymentAnnotations go through the Node Driver,
@@ -78,6 +96,8 @@ spec:
     machineGlobalConfig:
       cni: {{ .Values.clusterConfig.cni | default "canal" }}
       cloud-provider-name: {{ .Values.clusterConfig.cloudProviderName | default "external" }}
+      cluster-cidr: {{ .Values.clusterConfig.clusterCIDR | default "10.42.0.0/16" }}
+      service-cidr: {{ .Values.clusterConfig.serviceCIDR | default "10.43.0.0/16" }}
       {{- if .Values.clusterConfig.secretsEncryption }}
       secrets-encryption: true
       {{- end }}
@@ -90,7 +110,55 @@ spec:
       See: https://docs.rke2.io/security/hardening_guide
       */}}
       profile: {{ .Values.clusterConfig.cisProfile.profile | default "cis" }}
+      {{/*
+      DECISION: service-account-extend-token-expiration=false for CIS 1.11.
+      Why: CIS 1.11 (v1.29+) requires this kube-apiserver arg. Without it,
+           CIS benchmark check 1.2.30 fails. Not needed for older CIS versions.
+      See: https://docs.rke2.io/security/hardening_guide (v1.29+ config tab)
+      */}}
+      kube-apiserver-arg:
+        - "service-account-extend-token-expiration=false"
       {{- end }}
+    {{- if and .Values.hcloud.ccm.enabled .Values.hcloud.token }}
+    {{/*
+    DECISION: Deploy CCM via additionalManifest (RKE2 HelmChart CRD).
+    Why: cloud-provider-name: external adds NoSchedule taint on all nodes.
+         ManagedChart needs cluster-agent → agent can't schedule → deadlock.
+         additionalManifest is written to /var/lib/rancher/rke2/server/manifests/
+         and processed by RKE2's Helm controller at bootstrap time.
+         spec.bootstrap: true is the native RKE2 field designed for CCM.
+    See: https://docs.rke2.io/helm
+    */}}
+    additionalManifest: |-
+      ---
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: hcloud
+        namespace: kube-system
+      type: Opaque
+      stringData:
+        token: {{ .Values.hcloud.token | quote }}
+        {{- if .Values.hetzner.network }}
+        network: {{ .Values.hetzner.network | quote }}
+        {{- end }}
+      ---
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChart
+      metadata:
+        name: hcloud-ccm
+        namespace: kube-system
+      spec:
+        bootstrap: true
+        repo: https://charts.hetzner.cloud
+        chart: hcloud-cloud-controller-manager
+        version: {{ .Values.hcloud.ccm.version | quote }}
+        targetNamespace: kube-system
+        valuesContent: |-
+          networking:
+            enabled: {{ .Values.hetzner.usePrivateNetwork | default false }}
+            clusterCIDR: {{ .Values.clusterConfig.clusterCIDR | default "10.42.0.0/16" }}
+    {{- end }}
     upgradeStrategy:
       controlPlaneDrainOptions:
         enabled: {{ .Values.upgradeStrategy.controlPlaneDrainOptions.enabled | default false }}
