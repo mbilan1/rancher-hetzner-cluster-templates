@@ -29,14 +29,19 @@ app.kubernetes.io/part-of: rancher-hetzner-cluster-templates
 
 {{/*
 ────────────────────────────────────────────────────────────────────────────────
-CIS profile: host-level prerequisites (cloud-init userData)
+CIS profile: host-level prerequisites (Golden Image reference)
 
-DECISION: Auto-generate cloud-init to prepare hosts for RKE2 CIS profile.
-Why: RKE2 CIS profile (profile: cis) checks host prerequisites at startup and
-     exits with a fatal error if they're missing. The Hetzner Node Driver creates
-     fresh Ubuntu VMs without these prerequisites. Cloud-init userData runs at
-     first boot — before Rancher installs system-agent and RKE2 — so the host is
-     ready by the time RKE2 starts.
+DECISION: CIS host prerequisites are delivered via Golden Image (Hetzner snapshot),
+NOT via cloud-init userData. This helper is kept as a REFERENCE for what the Golden
+Image must contain — it is not currently injected into HetznerConfig.
+
+Why not userData: rancher-machine intercepts --hetzner-user-data (nameIsUserData()
+matches any flag containing "user-data") and replaces the value with Rancher's
+bootstrap cloud-init temp file. Inline CIS content is silently lost.
+
+Why not preInitScript: The patched driver (--hetzner-pre-init-script flag) adds a
+field that avoids nameIsUserData() interception. When deployed, this helper can be
+adapted to inject via preInitScript instead of requiring a golden image.
 
 Prerequisites (from https://docs.rke2.io/security/hardening_guide):
   1. etcd user/group must exist (CIS 1.1.12: etcd data dir owned by etcd:etcd)
