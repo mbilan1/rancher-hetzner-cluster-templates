@@ -34,7 +34,7 @@ cloudCredentialSecretName: ""
 #  Kubernetes
 # ═══════════════════════════════════════════════════════════════════════════════
 
-kubernetesVersion: "v1.32.3+rke2r1"
+kubernetesVersion: "v1.34.4+rke2r1"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Hetzner Global Settings

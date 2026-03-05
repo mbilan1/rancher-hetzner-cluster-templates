@@ -39,10 +39,6 @@ Why not userData: rancher-machine intercepts --hetzner-user-data (nameIsUserData
 matches any flag containing "user-data") and replaces the value with Rancher's
 bootstrap cloud-init temp file. Inline CIS content is silently lost.
 
-Why not preInitScript: The patched driver (--hetzner-pre-init-script flag) adds a
-field that avoids nameIsUserData() interception. When deployed, this helper can be
-adapted to inject via preInitScript instead of requiring a golden image.
-
 Prerequisites (from https://docs.rke2.io/security/hardening_guide):
   1. etcd user/group must exist (CIS 1.1.12: etcd data dir owned by etcd:etcd)
   2. Kernel sysctl params must match kubelet protect-kernel-defaults expectations

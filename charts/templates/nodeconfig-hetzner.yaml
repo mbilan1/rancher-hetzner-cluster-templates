@@ -44,8 +44,6 @@ Why: rancher-machine intercepts flags matching nameIsUserData() (any flag name
      Golden Image (Hetzner snapshot with etcd user + sysctl) avoids this entirely.
      The default image (hetzner.image) should be a CIS-ready snapshot.
 See: hetzner-cluster-template.cisUserData helper for what must be in the image.
-Future: When the patched driver (preInitScript field) is deployed, CIS prereqs
-        can be injected automatically without a golden image.
 */}}
 {{- if $nodepool.userData }}
 userData: {{ $nodepool.userData | quote }}
