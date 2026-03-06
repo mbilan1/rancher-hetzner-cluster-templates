@@ -1,3 +1,4 @@
+---
 # ──────────────────────────────────────────────────────────────────────────────
 # Hetzner RKE2 Cluster Template — Default values
 #
@@ -67,7 +68,7 @@ nodepools:
     # 2 vCPU, 4 GB RAM, 40 GB disk. Sufficient for small workloads.
     # Scale up to cx33/cx43 for production via questions.yaml dropdown.
     serverType: cx23
-    serverLocation: nbg1
+    serverLocation: hel1
     # DECISION: createFirewall + autoCreateFirewallRules = true by default.
     # Why: The zsys-studio driver manages a shared cluster firewall automatically.
     # It adds/removes node IPs as /32 source CIDRs for internal rules.

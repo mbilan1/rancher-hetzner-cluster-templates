@@ -1,3 +1,4 @@
+---
 # ──────────────────────────────────────────────────────────────────────────────
 # Hetzner RKE2 Cluster Template — Rancher UI form definition
 #
@@ -150,7 +151,7 @@ questions:
   label: "Server Location"
   description: "Hetzner Cloud datacenter location"
   type: enum
-  default: "fsn1"
+  default: "hel1"
   options:
     - "fsn1"
     - "nbg1"

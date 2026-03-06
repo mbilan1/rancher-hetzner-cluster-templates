@@ -51,8 +51,11 @@ spec:
   {{- if .Values.localClusterAuthEndpoint.enabled }}
   localClusterAuthEndpoint:
     enabled: {{ .Values.localClusterAuthEndpoint.enabled }}
-    fqdn: {{ .Values.localClusterAuthEndpoint.fqdn }}
-    caCerts: {{ .Values.localClusterAuthEndpoint.caCerts }}
+    fqdn: {{ .Values.localClusterAuthEndpoint.fqdn | quote }}
+    {{- if .Values.localClusterAuthEndpoint.caCerts }}
+    caCerts: |
+      {{ .Values.localClusterAuthEndpoint.caCerts | nindent 6 }}
+    {{- end }}
   {{- end }}
   rkeConfig:
     machinePools:
@@ -96,6 +99,9 @@ spec:
     machineGlobalConfig:
       cni: {{ .Values.clusterConfig.cni | default "canal" }}
       cloud-provider-name: {{ .Values.clusterConfig.cloudProviderName | default "external" }}
+      {{- if and (eq (default "external" .Values.clusterConfig.cloudProviderName) "external") (not .Values.hcloud.ccm.enabled) }}
+      {{- fail "clusterConfig.cloudProviderName is 'external' but hcloud.ccm.enabled is false. This causes a permanent NoSchedule taint deadlock. Either enable CCM or set cloudProviderName to empty string." }}
+      {{- end }}
       cluster-cidr: {{ .Values.clusterConfig.clusterCIDR | default "10.42.0.0/16" }}
       service-cidr: {{ .Values.clusterConfig.serviceCIDR | default "10.43.0.0/16" }}
       {{- if .Values.clusterConfig.secretsEncryption }}

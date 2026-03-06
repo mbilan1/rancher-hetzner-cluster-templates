@@ -1,3 +1,4 @@
+---
 # ──────────────────────────────────────────────────────────────────────────────
 # Hetzner RKE2 Cluster Template — Helm Chart metadata
 #
@@ -22,6 +23,7 @@ annotations:
   catalog.cattle.io/type: cluster-template
   catalog.cattle.io/namespace: fleet-default
   catalog.cattle.io/display-name: Hetzner Cloud (RKE2)
+icon: https://www.hetzner.com/assets/Uploads/Hetzner-Favicon.svg
 home: https://github.com/mbilan1/rancher-hetzner-cluster-templates
 sources:
   - https://github.com/mbilan1/rancher-hetzner-cluster-templates
