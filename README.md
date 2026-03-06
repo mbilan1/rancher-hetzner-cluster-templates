@@ -15,13 +15,12 @@ This chart is part of the **RKE2-on-Hetzner** ecosystem — a set of interconnec
 | [`terraform-hcloud-rke2-core`](https://github.com/mbilan1/terraform-hcloud-rke2-core) | L3 infrastructure primitive — servers, network, readiness |
 | [`terraform-hcloud-rancher`](https://github.com/mbilan1/terraform-hcloud-rancher) | Management cluster — Rancher + Node Driver on RKE2 |
 | **`rancher-hetzner-cluster-templates`** (this repo) | **Downstream cluster provisioning via Rancher UI** |
-| [`packer-hcloud-ubuntu-rke2-golden-image`](https://github.com/mbilan1/packer-hcloud-ubuntu-rke2-golden-image) | Golden image builder — CIS-hardened snapshots for nodes |
-| [`rke2-hetzner-architecture`](https://github.com/mbilan1/rke2-hetzner-architecture) | Architecture knowledge base — ADRs, investigations, designs |
+| [`packer-hcloud-rke2`](https://github.com/mbilan1/packer-hcloud-rke2) | Packer node image — CIS-hardened snapshots |
 
 ```
 rke2-core (L3 infra) → rancher (L3+L4 management) → cluster-templates (downstream via UI)
                                                     ↑
-                                        packer (golden images for nodes)
+                                        packer (node images)
 ```
 
 ## What This Does
@@ -45,9 +44,7 @@ rancher-hetzner-cluster-templates (this repo)
   → CCM deployed via additionalManifest (RKE2 HelmChart CRD)
 ```
 
-Part of the [rke2-hetzner-architecture](https://github.com/mbilan1/rke2-hetzner-architecture) platform:
-- [ADR-004: Downstream Provisioning via Rancher Cluster Templates](https://github.com/mbilan1/rke2-hetzner-architecture/blob/main/decisions/adr-004-downstream-provisioning.md)
-- [DES-001: Cluster Template Helm Chart](https://github.com/mbilan1/rke2-hetzner-architecture/blob/main/designs/des-001-cluster-template-helm-chart.md)
+Architecture decisions: ADR-004 (Downstream Provisioning), DES-001 (Cluster Template Helm Chart).
 
 ## Prerequisites
 

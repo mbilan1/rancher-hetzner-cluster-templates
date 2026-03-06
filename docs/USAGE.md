@@ -54,9 +54,9 @@ In Rancher UI:
 > **IMPORTANT**: Each downstream cluster should use a token scoped to its own
 > Hetzner Cloud Project for isolation. See ADR in `rke2-hetzner-architecture`.
 
-## Step 3b: Build a CIS-Hardened Golden Image (Optional)
+## Step 3b: Build a CIS-Hardened Node Image (Optional)
 
-If you want CIS Level 1 hardened nodes, build a golden image with Packer **before** creating the cluster.
+If you want CIS Level 1 hardened nodes, build a node image with Packer **before** creating the cluster.
 
 > **Why Packer?** CIS host prerequisites (etcd user, sysctl, kernel modules) must exist
 > before RKE2 starts. Rancher's machine driver intercepts the userData field, so cloud-init
@@ -65,7 +65,7 @@ If you want CIS Level 1 hardened nodes, build a golden image with Packer **befor
 ### Build the image
 
 ```bash
-cd packer-hcloud-ubuntu-rke2-golden-image/
+cd packer-hcloud-rke2/
 
 # Use the SAME Hetzner token as the Cloud Credential (same project)
 export HCLOUD_TOKEN="<downstream-project-token>"
