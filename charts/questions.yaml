@@ -73,6 +73,18 @@ questions:
   group: "Network"
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  Machine Image
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- variable: hetzner.image
+  label: "Machine Image"
+  description: "Hetzner image name or Packer snapshot ID (e.g. ubuntu-24.04 or 363889876). Packer golden images provide CIS-hardened OS with pre-installed RKE2."
+  type: string
+  default: "ubuntu-24.04"
+  required: true
+  group: "Machine Image"
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  Node Pool — Pool 1 (all roles)
 # ═══════════════════════════════════════════════════════════════════════════════
 

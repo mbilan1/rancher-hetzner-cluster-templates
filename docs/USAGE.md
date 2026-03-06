@@ -54,6 +54,36 @@ In Rancher UI:
 > **IMPORTANT**: Each downstream cluster should use a token scoped to its own
 > Hetzner Cloud Project for isolation. See ADR in `rke2-hetzner-architecture`.
 
+## Step 3b: Build a CIS-Hardened Golden Image (Optional)
+
+If you want CIS Level 1 hardened nodes, build a golden image with Packer **before** creating the cluster.
+
+> **Why Packer?** CIS host prerequisites (etcd user, sysctl, kernel modules) must exist
+> before RKE2 starts. Rancher's machine driver intercepts the userData field, so cloud-init
+> cannot deliver these settings. A pre-baked Hetzner snapshot is the only reliable method.
+
+### Build the image
+
+```bash
+cd packer-hcloud-ubuntu-rke2-golden-image/
+
+# Use the SAME Hetzner token as the Cloud Credential (same project)
+export HCLOUD_TOKEN="<downstream-project-token>"
+
+packer build -var "hcloud_token=$HCLOUD_TOKEN" -var enable_cis_hardening=true .
+# Output: A snapshot was created: 'ubuntu2404-rke2-v1324-cis-l1-...' (ID: 555666)
+```
+
+Note the **snapshot ID** (e.g. `555666`) from the output. You will enter this in the Rancher UI form.
+
+> **Snapshots are project-scoped.** A snapshot built with Project A's token is only visible
+> to servers created with Project A's token. If you have multiple downstream Hetzner projects,
+> run `packer build` once per project with each project's token.
+
+### Without CIS hardening
+
+Skip this step entirely. The cluster template defaults to `ubuntu-24.04` (Hetzner stock image).
+
 ## Step 4: Create a Downstream Cluster
 
 1. Navigate to **Cluster Management → Clusters**
@@ -64,6 +94,7 @@ In Rancher UI:
    - **Cloud Credential**: select the credential from Step 3
    - **Kubernetes Version**: default is fine
    - **Network**: enter the management network name/ID (from `tofu output network_id`)
+   - **Machine Image**: enter the Packer snapshot ID from Step 3b (e.g. `555666`), or leave as `ubuntu-24.04` for stock image
    - **Node Pool**: configure server type, location, count
 5. Click **Create**
 
