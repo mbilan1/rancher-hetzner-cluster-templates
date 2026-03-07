@@ -101,3 +101,35 @@ Helm chart for Rancher downstream cluster provisioning on Hetzner Cloud. Good CR
 - Clear CRD integration (provisioning.cattle.io/v1, rke-machine-config.cattle.io/v1)
 - Cloud credential pattern via Rancher's system
 - Extensive DECISION comments explaining design choices
+
+---
+
+## Fix Verification Status (2026-03-07)
+
+Verified against commit `0b6f913` ("fix: resolve code review findings") on `main` + additional fix in this branch.
+
+| # | Issue | Severity | Status | Notes |
+|---|-------|----------|--------|-------|
+| 1 | Token exposure in stringData | Critical | **NOT FIXED** | hcloud.token still in additionalManifest stringData |
+| 2 | Unconstrained CCM version | High | **NOT FIXED** | No semver validation added |
+| 3 | Server location default inconsistency | High | **FIXED** | values.yaml/questions.yaml aligned to hel1; **nodeconfig-hetzner.yaml fixed in this branch** (was "nbg1", now "hel1") |
+
+### Medium Issues (22 total)
+
+| Category | Fixed | Not Fixed | Details |
+|----------|-------|-----------|---------|
+| Security (4) | 0 | 4 | Token scope, SSH rotation, CIS default, NetworkPolicy |
+| Validation (5) | 0 | 5 | No schema, no minSize check, no required credential, no CIDR overlap, no network validation |
+| Documentation (5) | 0 | 5 | Contradictory manual secret, ADR links, CIS image, multi-pool, etcd backup |
+| Infrastructure (4) | 0 | 4 | Single pool, drain disabled, CRTB hash, CIDR sync |
+| Other (4) | 0 | 4 | Resource limits, RBAC validation, firewall ACL, credential required |
+
+### Low Issues (11 total): 0 fixed
+
+### Additional fixes applied (beyond review scope)
+- caCerts/fqdn quoting in cluster.yaml (proper YAML output)
+- CCM + external cloudProviderName deadlock guard (fail template)
+- Icon field added to Chart.yaml
+- YAML document-start markers added
+
+**Summary**: 1/36 fully fixed (location default, with branch fix), 0 partial on medium/low, 35 remaining.
