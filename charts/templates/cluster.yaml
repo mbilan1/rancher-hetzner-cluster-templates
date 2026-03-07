@@ -33,9 +33,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.cloudCredentialSecretName }}
-  cloudCredentialSecretName: {{ .Values.cloudCredentialSecretName }}
+  {{- if not .Values.cloudCredentialSecretName }}
+  {{- fail "cloudCredentialSecretName is required. Create a Rancher Cloud Credential for your Hetzner project and provide its secret name." }}
   {{- end }}
+  cloudCredentialSecretName: {{ .Values.cloudCredentialSecretName }}
   kubernetesVersion: {{ .Values.kubernetesVersion }}
   enableNetworkPolicy: true
   {{- if and .Values.clusterConfig.cisProfile.enabled .Values.clusterConfig.cisProfile.psaTemplate }}
@@ -136,6 +137,9 @@ spec:
          additionalManifest is written to /var/lib/rancher/rke2/server/manifests/
          and processed by RKE2's Helm controller at bootstrap time.
          spec.bootstrap: true is the native RKE2 field designed for CCM.
+    NOTE: The HCLOUD_TOKEN is embedded in stringData and visible in the Rancher
+         management cluster's Helm release history. Restrict access to the
+         fleet-default namespace via RBAC to prevent token exposure.
     See: https://docs.rke2.io/helm
     */}}
     additionalManifest: |-
