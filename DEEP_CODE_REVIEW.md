@@ -8,7 +8,7 @@
 
 Helm chart for Rancher downstream cluster provisioning on Hetzner Cloud. Good CRD integration and security-first defaults, but significant gaps in validation, documentation consistency, and operational guidance.
 
-**Total Issues: 34** — 1 Critical, 2 High, 21 Medium, 10 Low
+**Total Issues: 34** — 1 Critical, 2 High, 20 Medium, 11 Low
 
 ---
 
@@ -39,7 +39,7 @@ Helm chart for Rancher downstream cluster provisioning on Hetzner Cloud. Good CR
 
 ---
 
-## Medium Severity Issues (22 total, key highlights)
+## Medium Severity Issues (20 total, key highlights)
 
 ### Security (4)
 - **Token scope validation gap** (`values.yaml:32`) — No documentation warning that `cloudCredentialSecretName` and `hcloud.token` should reference the same Hetzner project. Note: this cannot be validated at Helm render time (no API access); reframed as a documentation gap.
@@ -61,13 +61,12 @@ Helm chart for Rancher downstream cluster provisioning on Hetzner Cloud. Good CR
 - **No multiple node pools example** — Chart supports `nodepools[]` array but shows only single-pool examples.
 - **No etcd backup strategy** — No RKE2 etcd snapshot configuration or DR guidance.
 
-### Infrastructure (4)
+### Infrastructure (3)
 - **Single converged node pool default** (`values.yaml:60-95`) — All roles on 3 nodes; workloads can starve control plane.
 - **Upgrade drain options disabled** (`values.yaml:165-170`) — Pods not gracefully evicted during upgrades.
 - **ClusterRoleTemplateBinding fragile hash** (`clusterroletemplatebinding.yaml:15-19`) — `sha256sum` truncated to 8 chars creates collision risk.
-- ~~**Network CIDR sync dependency**~~ — *Removed: not a real issue.* Both `machineGlobalConfig` (line 105) and CCM `valuesContent` (line 169) reference the same Helm value (`{{ .Values.clusterConfig.clusterCIDR | default "10.42.0.0/16" }}`), so they are guaranteed to stay in sync.
 
-### Other (4)
+### Other (3)
 - **No resource limits for system components** — No `systemReserved`/`kubeReserved` configuration.
 - **No RBAC validation for ClusterRoleTemplateBinding** — Accepts any `clusterMembers` without format validation.
 - **Firewall auto-creation without explicit ACL** (`values.yaml:76-77`) — No granular control over auto-created firewall rules.
@@ -117,7 +116,7 @@ Verified against commit `0b6f913` ("fix: resolve code review findings") on `main
 | 2 | Unconstrained CCM version | High | **NOT FIXED** | No semver validation added |
 | 3 | Server location default inconsistency | High | **FIXED** | values.yaml/questions.yaml aligned to hel1; **nodeconfig-hetzner.yaml fixed in this branch** (was "nbg1", now "hel1") |
 
-### Medium Issues (22 total)
+### Medium Issues (20 total)
 
 | Category | Fixed | Not Fixed | Details |
 |----------|-------|-----------|---------|
@@ -127,7 +126,7 @@ Verified against commit `0b6f913` ("fix: resolve code review findings") on `main
 | Infrastructure (3) | 0 | 3 | Single pool, drain disabled, CRTB hash |
 | Other (3) | 0 | 3 | Resource limits, RBAC validation, firewall ACL |
 
-### Low Issues (10 total): 0 fixed
+### Low Issues (11 total): 0 fixed
 
 ### Additional fixes applied (beyond review scope)
 - caCerts/fqdn quoting in cluster.yaml (proper YAML output)
