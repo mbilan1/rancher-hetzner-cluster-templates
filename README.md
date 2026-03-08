@@ -86,7 +86,7 @@ charts/
 
 ## Node Driver
 
-Uses [zsys-studio/rancher-hetzner-cluster-provider](https://github.com/zsys-studio/rancher-hetzner-cluster-provider) v0.8.0 (Apache-2.0).
+Uses [zsys-studio/rancher-hetzner-cluster-provider](https://github.com/zsys-studio/rancher-hetzner-cluster-provider) v0.9.0 (Apache-2.0).
 
 ## License
 
