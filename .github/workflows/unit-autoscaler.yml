@@ -1,0 +1,35 @@
+# Badge: Unit: autoscaler
+name: "Unit: autoscaler"
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  autoscaler:
+    name: helm template (autoscaler)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Render with autoscaler enabled
+        # hcloud.token=test is a CI placeholder — not a real API token.
+        # Real tokens are delivered via Rancher Cloud Credentials at deploy time.
+        # minSize/maxSize are camelCase — matches values.yaml convention.
+        run: |
+          helm template test ./charts \
+            --namespace fleet-default \
+            --set cluster.name=test \
+            --set cloudCredentialSecretName=test \
+            --set hcloud.token=test \
+            --set nodepools.0.autoscaler.enabled=true \
+            --set nodepools.0.autoscaler.minSize=1 \
+            --set nodepools.0.autoscaler.maxSize=5 \
+            > /tmp/rendered-autoscaler.yaml
+      - name: Assert autoscaler annotations present
+        run: grep -q 'cluster-api-autoscaler-node-group-min-size' /tmp/rendered-autoscaler.yaml
+      - name: Assert autoscaler max-size annotation present
+        run: grep -q 'cluster-api-autoscaler-node-group-max-size' /tmp/rendered-autoscaler.yaml

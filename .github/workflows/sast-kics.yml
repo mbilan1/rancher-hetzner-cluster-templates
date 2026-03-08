@@ -1,0 +1,35 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# SAST: KICS
+#
+# Checkmarx KICS — infrastructure-as-code vulnerability scanner.
+# Badge: SAST: KICS
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: "SAST: KICS"
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  kics:
+    name: KICS scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run KICS scan
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "${PWD}:/path" \
+            checkmarx/kics:v2.1.20 scan \
+            -p /path/charts \
+            --exclude-paths "/path/.git" \
+            --fail-on high,critical
