@@ -1,5 +1,13 @@
 # Hetzner RKE2 Cluster Template
 
+**Quality Gate Results:**
+
+[![Lint: lint](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-lint.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-lint.yml) [![Lint: template](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-template.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-template.yml)
+
+[![SAST: Checkov](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-checkov.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-checkov.yml) [![SAST: KICS](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-kics.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-kics.yml) [![SAST: Trivy](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-trivy.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-trivy.yml)
+
+[![Unit: defaults](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/unit-defaults.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/unit-defaults.yml) [![Unit: cisprofile](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/unit-cisprofile.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/unit-cisprofile.yml) [![Unit: autoscaler](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/unit-autoscaler.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/unit-autoscaler.yml)
+
 > **⚠️ Experimental (Beta)** — This is an **unofficial** community implementation, under active development and **not production-ready**.
 > APIs, values schema, and behavior may change without notice. Use at your own risk.
 > No stability guarantees are provided until v1.0.0.
