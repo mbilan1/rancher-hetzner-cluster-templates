@@ -1,5 +1,7 @@
 # Hetzner RKE2 Cluster Template
 
+[![Lint: Helm](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-helm.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-helm.yml)
+
 > **⚠️ Experimental (Beta)** — This is an **unofficial** community implementation, under active development and **not production-ready**.
 > APIs, values schema, and behavior may change without notice. Use at your own risk.
 > No stability guarantees are provided until v1.0.0.
