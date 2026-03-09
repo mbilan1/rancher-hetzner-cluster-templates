@@ -1,6 +1,8 @@
 # Hetzner RKE2 Cluster Template
 
 [![Lint: Helm](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-helm.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/lint-helm.yml)
+[![SAST: Checkov](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-checkov.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-checkov.yml)
+[![SAST: KICS](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-kics.yml/badge.svg)](https://github.com/mbilan1/rancher-hetzner-cluster-templates/actions/workflows/sast-kics.yml)
 
 <!-- Version badges — source: charts/Chart.yaml (version), charts/values.yaml (kubernetesVersion) -->
 ![Chart](https://img.shields.io/badge/Chart-0.1.0-0F1689?logo=helm&logoColor=white)
