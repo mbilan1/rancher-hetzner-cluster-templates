@@ -78,6 +78,22 @@ Standard Rancher cluster CRD. Key Hetzner-specific config:
 
 ---
 
+## Workflow: Updating Version Badges
+
+README.md contains version badges (shields.io) that must stay in sync with chart metadata.
+
+| Badge | Source of truth | Badge URL parameter |
+|---|---|---|
+| Chart | `charts/Chart.yaml` → `version` | `Chart-<version>` |
+| RKE2 | `charts/values.yaml` → `kubernetesVersion` | `RKE2-<version>` |
+
+When bumping a version:
+1. Update the source file
+2. Update the matching badge URL in README.md (search for `img.shields.io/badge/<name>`)
+3. Run `helm lint ./charts`
+
+---
+
 ## Git Conventions
 
 - **Commits**: `feat|fix|docs(<scope>): <summary>`
