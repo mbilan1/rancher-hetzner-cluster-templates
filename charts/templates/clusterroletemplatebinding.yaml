@@ -2,9 +2,14 @@
 ────────────────────────────────────────────────────────────────────────────────
 Hetzner RKE2 Cluster Template — RBAC ClusterRoleTemplateBinding
 
-DECISION: Following upstream rancher/cluster-template-examples pattern.
-Creates ClusterRoleTemplateBinding for each member in .Values.clusterMembers.
-This assigns Rancher RBAC roles (cluster-owner, cluster-member, etc.) to users.
+DECISION: CRTBs are created in fleet-default namespace (where the Cluster CRD lives).
+Why: Rancher auto-generates a cluster namespace (c-m-XXXXX) AFTER the Cluster CRD
+     is created. We cannot predict it at Helm render time. Creating CRTBs in
+     fleet-default with the clusterName reference allows Rancher's RBAC controller
+     to pick them up and apply them to the correct cluster namespace.
+
+NOTE: This follows the pattern from Rancher's own cluster provisioning flow where
+      CRTBs are initially created in the same namespace as the Cluster CRD.
 ────────────────────────────────────────────────────────────────────────────────
 */}}
 {{- $root := . }}
@@ -12,11 +17,11 @@ This assigns Rancher RBAC roles (cluster-owner, cluster-member, etc.) to users.
 apiVersion: management.cattle.io/v3
 kind: ClusterRoleTemplateBinding
 metadata:
-  name: crtb-{{ trunc 8 (sha256sum (printf "%s/%s" $root.Release.Namespace $member.principalName)) }}
-  namespace: c-m-{{ trunc 8 (sha256sum (printf "%s/%s" $root.Release.Namespace $root.Values.cluster.name)) }}
+  name: crtb-{{ $root.Values.cluster.name }}-{{ trunc 8 (sha256sum (printf "%s/%s" $root.Release.Namespace $member.principalName)) }}
+  namespace: {{ $root.Values.cluster.name }}
   labels:
     {{- include "hetzner-cluster-template.labels" $root | nindent 4 }}
-clusterName: c-m-{{ trunc 8 (sha256sum (printf "%s/%s" $root.Release.Namespace $root.Values.cluster.name)) }}
+clusterName: {{ $root.Values.cluster.name }}
 roleTemplateName: {{ $member.roleTemplateName }}
 userPrincipalName: {{ $member.principalName }}
 ---
