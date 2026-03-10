@@ -100,32 +100,21 @@ Skip this step entirely. The cluster template defaults to `ubuntu-24.04` (Hetzne
 
 Rancher will provision the servers via the Hetzner API and install RKE2.
 
-## Step 5: Post-Provisioning — Create HCLOUD_TOKEN Secret
+## Step 5: Verify
 
-After the downstream cluster is provisioned and shows "Active" in Rancher:
+After the downstream cluster is provisioned and shows "Active" in Rancher,
+verify that CCM is running:
 
 ```bash
 # Switch kubectl context to the downstream cluster (via Rancher UI → Download KubeConfig)
 
-# Create the HCLOUD_TOKEN secret for CCM and CSI
-kubectl -n kube-system create secret generic hcloud \
-  --from-literal=token=<DOWNSTREAM_PROJECT_HCLOUD_TOKEN> \
-  --from-literal=network=<NETWORK_NAME_OR_ID>
-```
-
-> **Why manual?** Rancher Cloud Credentials are stored encrypted in the management
-> cluster's etcd. They are NOT automatically synced as Kubernetes Secrets to
-> downstream clusters. The CCM and CSI Helm charts expect a `hcloud` secret in
-> `kube-system` namespace. This is documented as an open item in DES-001.
-
-## Step 6: Verify
-
-After a few minutes, check that CCM is running:
-
-```bash
 kubectl -n kube-system get pods | grep hcloud
 # Expected: hcloud-cloud-controller-manager-xxxxx Running
 ```
+
+> **Note**: The `hcloud` secret (HCLOUD_TOKEN + network) is **automatically created** at
+> bootstrap time via `additionalManifest` in the cluster template. No manual secret
+> creation is required when `hcloud.ccm.enabled=true` and `hcloud.token` is set.
 
 > **Note**: CSI is NOT managed by this chart. Operators deploy Hetzner CSI, Longhorn,
 > or Rook-Ceph separately. See the chart's `values.yaml` for details.

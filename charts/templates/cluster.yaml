@@ -88,8 +88,8 @@ spec:
       DECISION: Rancher-native machine pool autoscaling via CAPI autoscaler annotations.
       Why: Nodes created via machineDeploymentAnnotations go through the Node Driver,
            so they ARE visible in the Rancher UI machine pool — unlike standalone CA.
-      Test: Requires live verification against zsys-studio driver (Rancher v2.11).
-      See: rke2-hetzner-architecture/decisions/adr-007-cluster-autoscaler.md
+      Verified: 2026-03-04 — tested with zsys-studio Hetzner driver, scale-up/down works.
+      See: rke2-hetzner-architecture/decisions/adr-008-capi-autoscaler-annotations.md
       */}}
       machineDeploymentAnnotations:
         cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size: {{ $nodepool.autoscaler.minSize | default 0 | quote }}
