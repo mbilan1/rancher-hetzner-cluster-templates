@@ -79,9 +79,19 @@ questions:
 
 - variable: hetzner.image
   label: "Machine Image"
-  description: "Hetzner image name or Packer snapshot ID (e.g. ubuntu-24.04 or 363889876). Packer golden images provide CIS-hardened OS with pre-installed RKE2."
-  type: string
-  default: "ubuntu-24.04"
+  description: |
+    Machine OS image for cluster nodes.
+    • golden:cis — Auto-build CIS-hardened snapshot with pre-installed RKE2 (recommended for production).
+    • golden:base — Auto-build base snapshot with pre-installed RKE2 (no CIS hardening).
+    • ubuntu-24.04 — Stock Hetzner image (RKE2 installed at boot, slower provisioning).
+    • Snapshot ID (e.g. 363889876) — Use a pre-built Packer snapshot directly.
+    Golden images require the hcloud-image-controller to be running on the management cluster.
+  type: enum
+  default: "golden:cis"
+  options:
+    - "golden:cis"
+    - "golden:base"
+    - "ubuntu-24.04"
   required: true
   group: "Machine Image"
 
