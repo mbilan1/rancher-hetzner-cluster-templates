@@ -47,7 +47,11 @@ questions:
 
 - variable: hetzner.network
   label: "Private Network"
-  description: "Hetzner private network name or ID (from management cluster: tofu output network_id)"
+  description: |
+    Hetzner private network name or ID. WARNING: must exist in the DOWNSTREAM
+    Hetzner project (not the management project). Hetzner networks are project-scoped
+    and invisible across projects. Leave empty if no private network exists in the
+    downstream project.
   type: string
   required: false
   group: "Network"
@@ -226,7 +230,12 @@ questions:
 
 - variable: hcloud.token
   label: "Hetzner API Token"
-  description: "HCLOUD_TOKEN for downstream cluster CCM (same token as the Cloud Credential). Embedded as a K8s Secret in the downstream cluster."
+  description: |
+    HCLOUD_TOKEN for CCM inside the downstream cluster. Must be the EXACT SAME
+    token as the Cloud Credential selected above. If tokens differ, CCM cannot
+    authenticate → nodes get stuck with uninitialized taint → cluster never
+    connects to Rancher. Helm cannot read the Cloud Credential automatically,
+    so you must paste the token here manually.
   type: password
   required: true
   show_if: "hcloud.ccm.enabled=true"

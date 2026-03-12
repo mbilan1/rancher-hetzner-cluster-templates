@@ -7,10 +7,6 @@
 #      Azure, DO, vSphere — this chart is Hetzner-only. This keeps the chart
 #      simple and the UI form focused.
 # See: rke2-hetzner-architecture/designs/des-001-cluster-template-helm-chart.md
-#
-# DECISION: Network name is pre-fillable from terraform-hcloud-rancher output.
-# Why: ADR-005 — downstream clusters share the management cluster's private
-#      network. The network_id output from tofu is used to pre-fill this value.
 # ──────────────────────────────────────────────────────────────────────────────
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -42,8 +38,11 @@ kubernetesVersion: "v1.34.4+rke2r1"
 # ═══════════════════════════════════════════════════════════════════════════════
 
 hetzner:
-  # Pre-fill with management cluster network name (from `tofu output network_id`)
-  # ADR-005: Downstream clusters join the management cluster's private network.
+  # WARNING: This network must exist in the DOWNSTREAM Hetzner project.
+  # Hetzner private networks are project-scoped — a network from the management
+  # project is invisible to downstream servers and will cause CCM/driver failures.
+  # Leave empty if the downstream project has no private network.
+  # See: rke2-hetzner-architecture/investigations/inv-004-downstream-provisioning-pitfalls.md
   network: ""
   usePrivateNetwork: true
   disablePublicIpv4: false
@@ -117,9 +116,13 @@ nodepools:
 #      is the operator's responsibility — deploy via GitOps or Rancher Apps.
 hcloud:
   # HCLOUD_TOKEN for downstream cluster CCM.
-  # Same token as the Cloud Credential, but embedded as a K8s Secret in the
-  # downstream cluster via additionalManifest. Required when CCM is enabled.
-  # Same trust boundary as cloudCredentialSecretName (management cluster admins only).
+  # WARNING: Must be the EXACT SAME token as in the Cloud Credential above.
+  # This token is embedded as a K8s Secret in the downstream cluster for CCM.
+  # If this token differs from the Cloud Credential, CCM will fail to authenticate
+  # → nodes get stuck with uninitialized taint → cluster never connects.
+  # Helm cannot read the Cloud Credential secret at render time, so the token
+  # must be provided separately. Double-check it matches.
+  # See: rke2-hetzner-architecture/investigations/inv-004-downstream-provisioning-pitfalls.md
   token: ""
   ccm:
     enabled: true

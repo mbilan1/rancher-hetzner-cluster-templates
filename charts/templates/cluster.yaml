@@ -66,7 +66,19 @@ spec:
       etcdRole: {{ $nodepool.etcd }}
       workerRole: {{ $nodepool.worker }}
       quantity: {{ $nodepool.quantity }}
-      paused: {{ $nodepool.paused | default false }}
+      {{/*
+      DECISION: Auto-pause machine pools using golden: images.
+      Why: golden:cis/golden:base images require hcloud-image-controller to resolve
+           the image to a real snapshot ID before Rancher can provision nodes.
+           Without pausing, Rancher creates machines with literal "golden:cis" as
+           the image name → Hetzner rejects it → CreateError → delete loop.
+           The controller unpauses after resolving the snapshot (see ADR-012).
+           For non-golden images, the pool starts immediately as before.
+      See: rke2-hetzner-architecture/investigations/inv-004-downstream-provisioning-pitfalls.md
+      */}}
+      {{- $effectiveImage := $nodepool.image | default $.Values.hetzner.image | default "ubuntu-24.04" }}
+      {{- $isGolden := hasPrefix "golden:" $effectiveImage }}
+      paused: {{ if $isGolden }}true{{ else }}{{ $nodepool.paused | default false }}{{ end }}
       machineConfigRef:
         kind: HetznerConfig
         name: {{ $nodepool.name }}
