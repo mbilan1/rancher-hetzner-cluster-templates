@@ -47,12 +47,9 @@ hetzner:
   usePrivateNetwork: true
   disablePublicIpv4: false
   disablePublicIpv6: true
-  # DECISION: Default to golden:cis (auto-built CIS-hardened snapshot).
-  # Why: golden:cis triggers the hcloud-image-controller to build a Packer snapshot
-  #      with CIS hardening + pre-installed RKE2 matching the cluster's kubernetesVersion.
-  #      This is the recommended production flow (ADR-009, ADR-012).
-  # Options: "golden:cis", "golden:base", "ubuntu-24.04", or snapshot ID (e.g. "363889876").
-  image: "golden:cis"
+  # Options: "ubuntu-24.04", "golden:cis", "golden:base", or snapshot ID (e.g. "363889876").
+  # golden:* images require hcloud-image-controller on the management cluster.
+  image: "ubuntu-24.04"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Node Pools

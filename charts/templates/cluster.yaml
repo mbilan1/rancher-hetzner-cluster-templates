@@ -121,10 +121,11 @@ spec:
       {{- end }}
       {{- if .Values.clusterConfig.cisProfile.enabled }}
       {{/*
-      DECISION: CIS 1.11 hardening via RKE2 profile.
-      Why: `profile: cis` in machineGlobalConfig makes RKE2 apply CIS hardening
-           at bootstrap: file permissions, audit logging, token expiration, etc.
-           Fixes all 9 automated CIS FAIL checks without manual cloud-init.
+      DECISION: CIS hardening via RKE2 profile.
+      Why: profile: cis applies CIS hardening at bootstrap — file permissions,
+           audit logging, token expiration, etc. Works on stock ubuntu-24.04.
+           protect-kernel-defaults is NOT set — it requires pre-configured kernel
+           sysctl params that vanilla images lack, causing RKE2 crash-loop.
       See: https://docs.rke2.io/security/hardening_guide
       */}}
       profile: {{ .Values.clusterConfig.cisProfile.profile | default "cis" }}
