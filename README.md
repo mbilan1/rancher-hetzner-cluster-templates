@@ -6,7 +6,7 @@
 
 <!-- Version badges — source: charts/Chart.yaml (version), charts/values.yaml (kubernetesVersion) -->
 ![Chart](https://img.shields.io/badge/Chart-0.1.0-0F1689?logo=helm&logoColor=white)
-![RKE2](https://img.shields.io/badge/RKE2-v1.34.4%2Brke2r1-0075A8?logo=kubernetes&logoColor=white)
+![RKE2](https://img.shields.io/badge/RKE2-v1.35.3%2Brke2r1-0075A8?logo=kubernetes&logoColor=white)
 
 > **⚠️ Experimental (Beta)** — This is an **unofficial** community implementation, under active development and **not production-ready**.
 > APIs, values schema, and behavior may change without notice. Use at your own risk.

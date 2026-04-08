@@ -34,11 +34,11 @@ questions:
   description: "RKE2 Kubernetes version"
   type: enum
   required: true
-  default: "v1.34.4+rke2r1"
+  default: "v1.35.3+rke2r1"
   options:
+    - "v1.35.3+rke2r1"
     - "v1.34.4+rke2r1"
     - "v1.33.8+rke2r1"
-    - "v1.32.12+rke2r1"
   group: "General"
 
 # ═══════════════════════════════════════════════════════════════════════════════
