@@ -56,21 +56,34 @@ In Rancher UI:
 
 ## Step 3b: Build a CIS-Hardened Node Image (Optional)
 
-If you want CIS Level 1 hardened nodes, build a node image with Packer **before** creating the cluster.
+> **Superseded (2026-06-18):** the previous Packer-based image builder was dropped
+> (non-free license + poor Hetzner Cloud compatibility); the golden-image build backend
+> is **pending selection** and an open-source replacement has not yet been chosen.
+> The golden-image delivery concept continues via the OSS image controller (ADR-012 /
+> DES-004), which watches HetznerConfig and resolves `golden:*` references. Until a new
+> build backend is selected, build the snapshot out of band or skip this step and use the
+> Hetzner stock image (see "Without CIS hardening" below). The commands below describe the
+> retired Packer flow and are kept only as a record of the previous approach.
 
-> **Why Packer?** CIS host prerequisites (etcd user, sysctl, kernel modules) must exist
-> before RKE2 starts. Rancher's machine driver intercepts the userData field, so cloud-init
+If you want CIS Level 1 hardened nodes, build a node image with the golden-image build
+backend **before** creating the cluster.
+
+> **Why a pre-baked image?** CIS host prerequisites (etcd user, sysctl, kernel modules) must
+> exist before RKE2 starts. Rancher's machine driver intercepts the userData field, so cloud-init
 > cannot deliver these settings. A pre-baked Hetzner snapshot is the only reliable method.
 
 ### Build the image
 
+> The previous Packer-based image builder has been retired; the command below is preserved
+> only to document the historical flow. A replacement build backend is pending selection.
+
 ```bash
-cd packer-hcloud-rke2/
+# Retired flow (previous Packer-based image builder — no longer maintained):
 
 # Use the SAME Hetzner token as the Cloud Credential (same project)
 export HCLOUD_TOKEN="<downstream-project-token>"
 
-packer build -var "hcloud_token=$HCLOUD_TOKEN" -var enable_cis_hardening=true .
+# build -var "hcloud_token=$HCLOUD_TOKEN" -var enable_cis_hardening=true .
 # Output: A snapshot was created: 'ubuntu2404-rke2-v1324-cis-l1-...' (ID: 555666)
 ```
 
@@ -78,7 +91,7 @@ Note the **snapshot ID** (e.g. `555666`) from the output. You will enter this in
 
 > **Snapshots are project-scoped.** A snapshot built with Project A's token is only visible
 > to servers created with Project A's token. If you have multiple downstream Hetzner projects,
-> run `packer build` once per project with each project's token.
+> build the snapshot once per project with each project's token.
 
 ### Without CIS hardening
 
@@ -94,7 +107,7 @@ Skip this step entirely. The cluster template defaults to `ubuntu-24.04` (Hetzne
    - **Cloud Credential**: select the credential from Step 3
    - **Kubernetes Version**: default is fine
    - **Network**: enter the management network name/ID (from `tofu output network_id`)
-   - **Machine Image**: enter the Packer snapshot ID from Step 3b (e.g. `555666`), or leave as `ubuntu-24.04` for stock image
+   - **Machine Image**: enter the golden-image snapshot ID from Step 3b (e.g. `555666`), or leave as `ubuntu-24.04` for stock image (build backend pending selection — see Step 3b)
    - **Node Pool**: configure server type, location, count
 5. Click **Create**
 
